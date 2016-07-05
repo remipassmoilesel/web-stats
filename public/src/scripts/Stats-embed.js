@@ -20,8 +20,13 @@ var Stats = function(options) {
     // destinationUrl : "http://127.0.0.1:3000",
 
     /**
-     * Interval between auto send,
-     * can be disabled by use -1
+     * Set true for send data in interval
+     */
+    autosend: true,
+
+    /**
+     * Interval between auto sent
+     *
      */
     interval : 1500, //interval: Math.floor((Math.random() * 14 * 60 * 100) + 8 * 60 * 100),
 
@@ -34,14 +39,13 @@ var Stats = function(options) {
 
   this.options = $.extend(options, defaultOptions);
 
-
   this.options.persistenceUrl = options.destinationUrl + "/persist";
   this.options.readUrl = options.destinationUrl + "/data";
 
   this.buffer = [];
 
   // send buffer automatically
-  if (options.interval !== -1) {
+  if (options.autosend === true) {
     var self = this;
     setInterval(function() {
       self.sendDataBuffer();
@@ -98,7 +102,8 @@ Stats.prototype.sendDataBuffer = function() {
         console.log("fail sending buffer");
         console.log(arguments);
       });
-}
+};
+
 
 /**
  * Return the list of events
@@ -107,7 +112,7 @@ Stats.prototype.sendDataBuffer = function() {
 Stats.prototype.getEventList = function(){
 
   var self = this;
-  
+
   var req = {
     url : self.options.readUrl + "/event/list",
     type : 'POST',
@@ -118,7 +123,7 @@ Stats.prototype.getEventList = function(){
   };
 
   return $.ajax(req);
-  
+
 }
 
 /**
@@ -141,6 +146,7 @@ Stats.prototype.getEventResume = function(){
   return $.ajax(req);
 
 }
+
 
 /**
  * Export module if necesary

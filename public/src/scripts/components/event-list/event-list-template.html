@@ -1,10 +1,10 @@
 
 <div class="eventListContainer">
 
-  <select>
+  <h2>Event list</h2>
 
-    <option ng-repeat="val in this.eventList">{{val}}</option>
-
-  </select>
+  <div style="overflow: auto">
+    <div ng-repeat="(i, val) in $ctrl.eventList">{{i + 1}}. {{val}}</div>
+  </div>
 
 </div>

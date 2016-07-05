@@ -1,7 +1,7 @@
 /**
  * Show a list of availables keywords
  */
-var template = require('html!./event-list-template.html');
+var template = require('html!./event-resume.html');
 
 var stats = require("../../Stats-embed.js")({
   autosend : false,
@@ -9,15 +9,13 @@ var stats = require("../../Stats-embed.js")({
   authorization : "DK5I4-0yl9N2KN64Pg5YcEAsdnCXeamr"
 });
 
-var EventListContainer = function($http, $scope) {
+var EventResumeController = function($http, $scope) {
 
   var self = this;
 
-  this.title = "Heeelllooooo !";
-  
-  stats.getEventList().then(function(result) {
+  stats.getEventResume().then(function(result) {
     
-    self.eventList = result;
+    self.eventResume = result;
 
     $scope.$apply();
     
@@ -25,11 +23,15 @@ var EventListContainer = function($http, $scope) {
 
 };
 
-EventListContainer.$inject = ["$http", "$scope"];
+EventResumeController.$inject = ["$http", "$scope"];
 
 module.exports = function(angularMod) {
 
-  angularMod.component("eventList", {
-    template : template, controller : EventListContainer, bindings : {}
+  angularMod.component("eventResume", {
+    template : template,
+
+    controller : EventResumeController,
+
+    bindings : {}
   });
 };
