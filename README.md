@@ -41,7 +41,7 @@ Visualize datas and charts on:
 ## Screenshots
 
 
-[[https://github.com/remipassmoilesel/web-stats/blob/master/images/screenshot_1.png|alt=Screenshot 1]]
+![alt=Screenshot 1](https://github.com/remipassmoilesel/web-stats/blob/master/images/screenshot_1.png)
 
 
-[[https://github.com/remipassmoilesel/web-stats/blob/master/images/screenshot_2.png|alt=Screenshot 2]]
+![alt=Screenshot 2](https://github.com/remipassmoilesel/web-stats/blob/master/images/screenshot_2.png)
