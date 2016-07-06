@@ -26,6 +26,12 @@ On client where you want to grab statistics:
     <script src="../public/bower_components/jquery-ui/jquery-ui.js"></script>
     <script src="../public/dist/Stats-embed.js"></script>
     
+    var stats = new Stats({
+      destinationUrl: "http://127.0.0.1:3000",
+      authorization: "DK5I4-0yl9N2KN64Pg5YcEAsdnCXeamr",
+      autosend: true
+    });
+    
     stats.addEvent("document.loaded", {});
     stats.addEvent("instant-messaging.new-video-call", {});
     stats.addEvent("instant-messaging.error", {message: 'Error: ...'});
