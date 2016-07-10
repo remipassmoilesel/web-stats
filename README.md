@@ -14,10 +14,15 @@ Server side:
     $ cd web-stats
     $ npm install
     $ cd public
-    $ bower install
+    $ bower instaTB4qIxSR6YsL0YUl5KP35yvEUG27wYBVll
     
+    $ sudo service psotgresql start
+    $ sudo -u postgres psql -c 'create database Stats' 
+
     $ cd server
     $ node server.js
+
+
    
     
 On client where you want to grab statistics:
