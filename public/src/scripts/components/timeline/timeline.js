@@ -45,10 +45,8 @@ var TimeLineController = function($scope, stats) {
         $scope.$apply();
 
       })
-      .fail(function(result) {
-
-        console.log(result);
-
+      .fail(function() {
+        console.log(arguments);
       });
 
 };

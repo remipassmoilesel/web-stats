@@ -8,11 +8,13 @@ var EventResumeController = function($http, $scope, stats) {
   var self = this;
 
   stats.getEventResume().then(function(result) {
-    
+
     self.eventResume = result;
 
     $scope.$apply();
-    
+
+  }).fail(function() {
+    console.error(arguments);
   });
 
 };

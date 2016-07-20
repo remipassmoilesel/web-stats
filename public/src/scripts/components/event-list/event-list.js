@@ -13,6 +13,8 @@ var EventListController = function($http, $scope, stats) {
 
     $scope.$apply();
 
+  }).fail(function() {
+    console.error(arguments);
   });
 
 };
