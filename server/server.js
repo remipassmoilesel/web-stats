@@ -12,8 +12,7 @@
  * Dependencies
  */
 var express = require('express');
-var CJSON = require('circular-json')
-var _ = require('underscore')
+var _ = require('underscore');
 var colors = require('colors');
 var fs = require('fs');
 var winston = require('winston');
@@ -42,7 +41,7 @@ var dbmanager = require('./database.js');
 /**
  * Grab configuration
  */
-var config = require("./configuration.js");
+var config = require("../configuration.js");
 
 /**
  * Check if table database ready
@@ -151,7 +150,19 @@ statPersistence.post('/persist', function(req, res) {
 app.use('/', statPersistence); // mount the sub app
 
 /**
+ *
+ *
+ *
+ *
+ *
  * Where clients can see datas and charts
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 var dataAccess = express(); // the sub app
 
@@ -230,6 +241,45 @@ dataAccess.post('/event/resume', function(req, res) {
 });
 
 /**
+ * Get the last events
+ */
+dataAccess.post('/event/last', function(req, res) {
+
+  checkAuthorization(req, res);
+
+  dbmanager.query(
+      "SELECT * FROM data_requests ORDER BY datetime DESC LIMIT 300;")
+
+      .then(function(result) {
+
+        var finalRes = [];
+        if (result && result.rows) {
+          _.each(result.rows, function(value, key, list) {
+            finalRes.push({
+              "id" : value.id,
+              "event_name" : value.event_name,
+              "event_data" : value.event_data,
+              "datetime": value.datetime
+            });
+          });
+
+        }
+
+        res.status(200).json(finalRes);
+        res.send();
+
+      })
+      .catch(function(error) {
+        log("500 - Internal error".red);
+        log(error);
+
+        res.status(500).json({"error" : '500'});
+        res.send();
+      });
+
+});
+
+/**
  * Get events occurence per hours
  */
 dataAccess.post('/event/timeline/hours', function(req, res) {
@@ -242,7 +292,7 @@ dataAccess.post('/event/timeline/hours', function(req, res) {
   };
 
   dbmanager.query(
-      "SELECT COUNT(*), to_char(datetime, 'YYYYMMDDHH24') FROM data_requests GROUP BY to_char(datetime, 'YYYYMMDDHH24') ORDER BY to_char ASC")
+      "SELECT COUNT(*), to_char(datetime, 'YYYYMMDDHH24') FROM data_requests GROUP BY to_char(datetime, 'YYYYMMDDHH24') ORDER BY to_char DESC LIMIT 100")
 
       .then(function(result) {
 
