@@ -3,28 +3,39 @@
  */
 var template = require('html!./last-events.html');
 
-var EventResumeController = function($http, $scope, stats) {
+var LastEventsController = function($http, $scope, stats) {
 
   var self = this;
 
-  stats.getEventResume().then(function(result) {
-    
-    self.eventResume = result;
+  stats.getLastEvents().then(function(result) {
+
+    self.lastEvents = result;
+
+    $.each(self.lastEvents, function(index, element){
+      //2016-07-03T17:05:00.585Z
+      var month = element.datetime.substring(5,7);
+      var day = element.datetime.substring(8,10);
+      var hour = element.datetime.substring(11,16);
+      element.prettyDate = month + "/" + day + " - " + hour ;
+    });
 
     $scope.$apply();
-    
-  });
+
+  })
+      .fail(function() {
+        console.error(arguments);
+      });
 
 };
 
-EventResumeController.$inject = ["$http", "$scope", "stats"];
+LastEventsController.$inject = ["$http", "$scope", "stats"];
 
 module.exports = function(angularMod) {
 
-  angularMod.component("eventResume", {
+  angularMod.component("lastEvents", {
     template : template,
 
-    controller : EventResumeController,
+    controller : LastEventsController,
 
     bindings : {}
   });

@@ -2,8 +2,11 @@
 
   <h2>Last events</h2>
 
-  <div style="overflow: auto">
-    <div ng-repeat="(i, val) in $ctrl.lastEvents">{{i + 1}}. {{val.event_name + ": " + val.count}}
+  <div style="overflow: auto; height: 200px">
+    <div ng-repeat="(i, val) in $ctrl.lastEvents">
+      <div style="width: 20%; display: inline-block">{{val.prettyDate}}</div>
+      <div style="width: 40%; display: inline-block">{{val.event_name}}</div>
+      <div style="display: inline-block">{{val.event_data}}</div>
     </div>
   </div>
 
