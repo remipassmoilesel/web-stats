@@ -1,0 +1,10 @@
+<div class="lastEventsContainer">
+
+  <h2>Last events</h2>
+
+  <div style="overflow: auto">
+    <div ng-repeat="(i, val) in $ctrl.lastEvents">{{i + 1}}. {{val.event_name + ": " + val.count}}
+    </div>
+  </div>
+
+</div>
