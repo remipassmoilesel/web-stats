@@ -16,7 +16,7 @@ var LastEventsController = function($http, $scope, stats) {
       var month = element.datetime.substring(5,7);
       var day = element.datetime.substring(8,10);
       var hour = element.datetime.substring(11,16);
-      element.prettyDate = month + "/" + day + " - " + hour ;
+      element.prettyDate = day + "/" + month + " - " + hour ;
     });
 
     $scope.$apply();
