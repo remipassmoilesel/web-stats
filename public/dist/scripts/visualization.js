@@ -96,7 +96,7 @@
 	 */
 	module.exports = (function() {
 
-	  var DEV_MODE = true;
+	  var DEV_MODE = false;
 
 	  var configuration = {
 
@@ -134,7 +134,7 @@
 	    DESTINATION_URL : "https://im.silverpeas.net/stats"
 	  }
 
-	  if (DEV_MODE) {
+	  if (DEV_MODE === true) {
 	    configuration.PORT = 3005;
 	    configuration.DESTINATION_URL = "http://127.0.0.1:3005";
 	  }
@@ -5868,7 +5868,7 @@
 	      var month = element.datetime.substring(5,7);
 	      var day = element.datetime.substring(8,10);
 	      var hour = element.datetime.substring(11,16);
-	      element.prettyDate = month + "/" + day + " - " + hour ;
+	      element.prettyDate = day + "/" + month + " - " + hour ;
 	    });
 
 	    $scope.$apply();
@@ -5897,7 +5897,7 @@
 /* 18 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"lastEventsContainer\">\n\n  <h2>Last events</h2>\n\n  <div style=\"overflow: auto; height: 200px\">\n    <div ng-repeat=\"(i, val) in $ctrl.lastEvents\">\n      <div style=\"width: 20%; display: inline-block\">{{val.prettyDate}}</div>\n      <div style=\"width: 40%; display: inline-block\">{{val.event_name}}</div>\n      <div style=\"display: inline-block\">{{val.event_data}}</div>\n    </div>\n  </div>\n\n</div>";
+	module.exports = "<div class=\"lastEventsContainer\">\n\n  <h2>Last events</h2>\n\n  <div style=\"overflow: auto; height: 200px\">\n    <div ng-repeat=\"(i, val) in $ctrl.lastEvents\">\n      <div style=\"width: 7%; display: inline-block\">{{val.id}}</div>\n      <div style=\"width: 17%; display: inline-block\">{{val.prettyDate}}</div>\n      <div style=\"width: 40%; display: inline-block\">{{val.event_name}}</div>\n      <div style=\"display: inline-block\">{{val.event_data}}</div>\n    </div>\n  </div>\n\n</div>";
 
 /***/ }
 /******/ ]);
