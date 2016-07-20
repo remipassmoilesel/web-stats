@@ -306,6 +306,8 @@ dataAccess.post('/event/timeline/hours', function(req, res) {
             });
           });
 
+          finalRes.reverse();
+
         }
 
         res.status(200).json(finalRes);
