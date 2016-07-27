@@ -63,11 +63,18 @@ DBManager.prototype.createTableScheme = function() {
 DBManager.prototype.resetTableScheme = function() {
 
   var self = this;
+
+  console.log(" !!! Table scheme have been reseted.");
+  console.log(" !!! Table scheme have been reseted.");
+  console.log(" !!! Table scheme have been reseted.");
+  console.log(" !!! Table scheme have been reseted.");
+  console.log("");
+
   this.query("DROP TABLE data_requests").then(function() {
     self.createTableScheme();
   });
 
-}
+};
 
 /**
  * Execute a postgres query
@@ -107,27 +114,29 @@ DBManager.prototype.query = function(query, arguments) {
   });
 };
 
+/**
+ * Save a request from client
+ *
+ * Request contains:
+ *  - One session id called 'request_from'
+ *  - Possible multiple pair key/value
+ *
+ * @param req
+ */
 DBManager.prototype.saveRequest = function(req) {
 
   var self = this;
 
-  var remoteaddr = req.connection.remoteAddress;
+  var datas = req.body.datas;
 
-  var indexOfColon = remoteaddr.lastIndexOf(':');
-  var from = remoteaddr.substring(indexOfColon + 1, remoteaddr.length);
-
-  console.log(remoteaddr);
-  console.log(indexOfColon);
-  console.log(from);
-
-  var datas = req.body;
+  var request_from = req.body.request_from;
 
   // to run a query we can acquire a client from the pool,
   // run a query on the client, and then return the client to the pool
   self.pool.connect(function(err, client, done) {
 
     if (err) {
-      console.error('error getting client', err);
+      console.error('Error getting client', err);
       return;
     }
 
@@ -138,17 +147,15 @@ DBManager.prototype.saveRequest = function(req) {
         var req = "INSERT INTO data_requests (request_from, event_name, event_data)"
         req += " VALUES ($1, $2, $3)";
 
-        console.log(value);
-
         var event = value.event;
         var value = Object.keys(value).length > 0 ? JSON.stringify(value.data) : "";
 
-        client.query(req, [from, event, value], function(err, result) {
+        client.query(req, [request_from, event, value], function(err, result) {
           //call `done()` to release the client back to the pool
           done();
 
           if (err) {
-            console.error('error running query', err);
+            console.error('Error running query', err);
             return;
           }
 
@@ -161,6 +168,55 @@ DBManager.prototype.saveRequest = function(req) {
     });
 
   });
+
+};
+
+/**
+ * 
+ * Save session request in database
+ * 
+ * 
+ * @param req
+ */
+DBManager.prototype.saveSession = function(req){
+
+  var self = this;
+
+  var datas = req.body;
+
+  self.pool.connect(function(err, client, done) {
+
+    if (err) {
+      console.error('error getting client', err);
+      return;
+    }
+
+    try {
+
+      var req = "INSERT INTO data_sessions (request_from, navigator_language, user_agent)"
+      req += " VALUES ($1, $2, $3)";
+
+      var request_from = datas.request_from;
+      var navigator_language = datas.navigator_language;
+      var user_agent = datas.user_agent;
+
+      client.query(req, [request_from, navigator_language, user_agent], function(err, result) {
+        //call `done()` to release the client back to the pool
+        done();
+
+        if (err) {
+          console.error('Error running query', err);
+          return;
+        }
+
+      });
+
+    } catch (e) {
+      console.error(e);
+    }
+
+  });
+
 
 };
 

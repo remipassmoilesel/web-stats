@@ -28,9 +28,14 @@ function log(str) {
 }
 
 /**
+ * Grab configuration
+ */
+var config = require("../configuration.js");
+
+/**
  * Launching app
  */
-log("Starting Stats server ...".blue);
+log(("Starting Stats server on port: " + config.PORT + " ...").blue);
 log();
 
 /**
@@ -39,14 +44,9 @@ log();
 var dbmanager = require('./database.js');
 
 /**
- * Grab configuration
- */
-var config = require("../configuration.js");
-
-/**
  * Check if table database ready
  */
-//dbmanager.resetTableScheme();
+// dbmanager.resetTableScheme();
 dbmanager.createTableScheme();
 
 /**
@@ -141,6 +141,24 @@ statPersistence.post('/persist', function(req, res) {
 
   // save datas
   dbmanager.saveRequest(req);
+
+  res.status(200).json({"state" : 'OK'});
+  res.send();
+
+});
+
+/**
+ * Where clients send data
+ */
+statPersistence.post('/session', function(req, res) {
+
+  log("");
+  log(("Receiving session request: " + req.ip + "").green);
+
+  checkAuthorization(req, res);
+
+  // save datas
+  dbmanager.saveSession(req);
 
   res.status(200).json({"state" : 'OK'});
   res.send();

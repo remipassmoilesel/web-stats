@@ -2,6 +2,8 @@
 
 To save and monitor events. Based on Node, Angular and Chartjs.
 
+All data stored is strictly anonymous.
+
 Work in progress.
 
 ## Getting started
