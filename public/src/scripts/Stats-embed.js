@@ -14,7 +14,7 @@ var Stats = function(options) {
 
   var defaultOptions = {
 
-    debug : true,
+    debug : false,
 
     /**
      * Destination, without trailing slash
@@ -154,20 +154,39 @@ Stats.prototype.sendDataBuffer = function() {
 
   var self = this;
 
-  if (this.options.debug === true) {
+  if (self.options.debug === true) {
     console.log("sendDataBuffer");
     console.trace();
   }
 
   if (Object.keys(self.buffer).length < 1) {
 
-    if (this.options.debug === true) {
+    if (self.options.debug === true) {
       console.log("__ Empty buffer");
     }
 
     return;
   }
 
+  /**
+   * Check if another demand is not in progress
+   */
+  if(self._sendingInProgress === true){
+
+    if (self.options.debug === true) {
+      console.log("__ already sending something, stop");
+    }
+
+    return;
+  }
+
+  self._sendingInProgress = true;
+
+  var sendIsDone = function(){
+    self._sendingInProgress = false;
+  };
+
+  // session have not been transmitted
   if (self.sessionId === "") {
 
     if (this.options.debug === true) {
@@ -175,9 +194,9 @@ Stats.prototype.sendDataBuffer = function() {
     }
 
     // send session
-    this.sendSession()
-        .then(function() {
-          self._sendDataBuffer();
+    self.sendSession().done(function() {
+
+          self._sendDataBuffer().done(sendIsDone).fail(sendIsDone);
 
           if (self.options.debug === true) {
             console.log("__ Session sent");
@@ -192,7 +211,7 @@ Stats.prototype.sendDataBuffer = function() {
   }
 
   else {
-    this._sendDataBuffer();
+    this._sendDataBuffer().done(sendIsDone).fail(sendIsDone);
   }
 
   if (this.options.debug === true) {
@@ -231,9 +250,7 @@ Stats.prototype._sendDataBuffer = function() {
  */
 Stats.prototype.getEventList = function() {
 
-  var self = this;
-
-  return self._makeAjax(self.options.readUrl + "/event/list", 'POST');
+  return this._makeAjax(this.options.readUrl + "/event/list", 'POST');
 
 };
 
@@ -243,9 +260,7 @@ Stats.prototype.getEventList = function() {
  */
 Stats.prototype.getEventResume = function() {
 
-  var self = this;
-
-  return self._makeAjax(self.options.readUrl + "/event/resume", 'POST');
+  return this._makeAjax(this.options.readUrl + "/event/resume", 'POST');
 
 };
 
@@ -255,9 +270,7 @@ Stats.prototype.getEventResume = function() {
  */
 Stats.prototype.getEventTimeline = function() {
 
-  var self = this;
-
-  return self._makeAjax(self.options.readUrl + "/event/timeline/hours", 'POST');
+  return this._makeAjax(this.options.readUrl + "/event/timeline/hours", 'POST');
 
 };
 
@@ -267,9 +280,7 @@ Stats.prototype.getEventTimeline = function() {
  */
 Stats.prototype.getLastEvents = function() {
 
-  var self = this;
-
-  return self._makeAjax(self.options.readUrl + "/event/last", 'POST');
+  return this._makeAjax(this.options.readUrl + "/event/last", 'POST');
 
 };
 
@@ -300,7 +311,9 @@ Stats.prototype._makeAjax = function(url, method, datas, headers) {
       "Authorization" : self.options.authorization,
 
       "Content-Type" : "application/json"
-    }
+    },
+
+    timeout: 5000
   };
 
   // ajouter entetes si necessaire

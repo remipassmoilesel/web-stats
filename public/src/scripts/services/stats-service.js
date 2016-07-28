@@ -2,7 +2,7 @@
 var conf = require("../../../../configuration.js");
 
 module.exports = function(angularMod){
-  
+
   var statService = require("../Stats-embed.js")({
     autosend : false,
     destinationUrl : conf.DESTINATION_URL,
@@ -12,5 +12,5 @@ module.exports = function(angularMod){
   angularMod.factory('stats', function() {
     return statService;
   });
-  
+
 };

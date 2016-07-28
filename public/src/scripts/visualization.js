@@ -6,6 +6,7 @@ var visualizationModule = angular.module("visualizationModule", ['ngMaterial', '
 
 // load components
 require("./services/stats-service.js")(visualizationModule);
+
 require("./components/timeline/timeline.js")(visualizationModule);
 require("./components/pie-chart/pie-chart.js")(visualizationModule);
 require("./components/event-list/event-list.js")(visualizationModule);

@@ -5,7 +5,7 @@ var template = require('html!./timeline-template.html');
 var Chance = require('chance');
 
 var TimeLineController = function($scope, stats) {
-
+  
   this.id = "timeLine_" + new Date().getTime();
 
   this.title = "Timeline";
@@ -14,7 +14,7 @@ var TimeLineController = function($scope, stats) {
   stats.getEventTimeline()
 
       .then(function(result) {
-
+        
         var labels = [];
         var datas = [];
         $.each(result, function(index, value) {

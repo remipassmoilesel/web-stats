@@ -52,6 +52,7 @@
 
 	// load components
 	__webpack_require__(1)(visualizationModule);
+
 	__webpack_require__(4)(visualizationModule);
 	__webpack_require__(11)(visualizationModule);
 	__webpack_require__(13)(visualizationModule);
@@ -72,7 +73,7 @@
 	var conf = __webpack_require__(2);
 
 	module.exports = function(angularMod){
-	  
+
 	  var statService = __webpack_require__(3)({
 	    autosend : false,
 	    destinationUrl : conf.DESTINATION_URL,
@@ -82,7 +83,7 @@
 	  angularMod.factory('stats', function() {
 	    return statService;
 	  });
-	  
+
 	};
 
 /***/ },
@@ -96,7 +97,7 @@
 	 */
 	module.exports = (function() {
 
-	  var DEV_MODE = true;
+	  var DEV_MODE = false;
 
 	  var configuration = {
 
@@ -163,7 +164,7 @@
 
 	  var defaultOptions = {
 
-	    debug : true,
+	    debug : false,
 
 	    /**
 	     * Destination, without trailing slash
@@ -303,20 +304,39 @@
 
 	  var self = this;
 
-	  if (this.options.debug === true) {
+	  if (self.options.debug === true) {
 	    console.log("sendDataBuffer");
 	    console.trace();
 	  }
 
 	  if (Object.keys(self.buffer).length < 1) {
 
-	    if (this.options.debug === true) {
+	    if (self.options.debug === true) {
 	      console.log("__ Empty buffer");
 	    }
 
 	    return;
 	  }
 
+	  /**
+	   * Check if another demand is not in progress
+	   */
+	  if(self._sendingInProgress === true){
+
+	    if (self.options.debug === true) {
+	      console.log("__ already sending something, stop");
+	    }
+
+	    return;
+	  }
+
+	  self._sendingInProgress = true;
+
+	  var sendIsDone = function(){
+	    self._sendingInProgress = false;
+	  };
+
+	  // session have not been transmitted
 	  if (self.sessionId === "") {
 
 	    if (this.options.debug === true) {
@@ -324,9 +344,9 @@
 	    }
 
 	    // send session
-	    this.sendSession()
-	        .then(function() {
-	          self._sendDataBuffer();
+	    self.sendSession().done(function() {
+
+	          self._sendDataBuffer().done(sendIsDone).fail(sendIsDone);
 
 	          if (self.options.debug === true) {
 	            console.log("__ Session sent");
@@ -341,7 +361,7 @@
 	  }
 
 	  else {
-	    this._sendDataBuffer();
+	    this._sendDataBuffer().done(sendIsDone).fail(sendIsDone);
 	  }
 
 	  if (this.options.debug === true) {
@@ -380,9 +400,7 @@
 	 */
 	Stats.prototype.getEventList = function() {
 
-	  var self = this;
-
-	  return self._makeAjax(self.options.readUrl + "/event/list", 'POST');
+	  return this._makeAjax(this.options.readUrl + "/event/list", 'POST');
 
 	};
 
@@ -392,9 +410,7 @@
 	 */
 	Stats.prototype.getEventResume = function() {
 
-	  var self = this;
-
-	  return self._makeAjax(self.options.readUrl + "/event/resume", 'POST');
+	  return this._makeAjax(this.options.readUrl + "/event/resume", 'POST');
 
 	};
 
@@ -404,9 +420,7 @@
 	 */
 	Stats.prototype.getEventTimeline = function() {
 
-	  var self = this;
-
-	  return self._makeAjax(self.options.readUrl + "/event/timeline/hours", 'POST');
+	  return this._makeAjax(this.options.readUrl + "/event/timeline/hours", 'POST');
 
 	};
 
@@ -416,9 +430,7 @@
 	 */
 	Stats.prototype.getLastEvents = function() {
 
-	  var self = this;
-
-	  return self._makeAjax(self.options.readUrl + "/event/last", 'POST');
+	  return this._makeAjax(this.options.readUrl + "/event/last", 'POST');
 
 	};
 
@@ -449,7 +461,9 @@
 	      "Authorization" : self.options.authorization,
 
 	      "Content-Type" : "application/json"
-	    }
+	    },
+
+	    timeout: 5000
 	  };
 
 	  // ajouter entetes si necessaire
@@ -483,7 +497,7 @@
 	var Chance = __webpack_require__(6);
 
 	var TimeLineController = function($scope, stats) {
-
+	  
 	  this.id = "timeLine_" + new Date().getTime();
 
 	  this.title = "Timeline";
@@ -492,7 +506,7 @@
 	  stats.getEventTimeline()
 
 	      .then(function(result) {
-
+	        
 	        var labels = [];
 	        var datas = [];
 	        $.each(result, function(index, value) {
