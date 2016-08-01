@@ -12,6 +12,7 @@ var shell = require('gulp-shell')
 var merge = require('gulp-merge')
 var jshint = require('gulp-jshint');
 var stylish = require('jshint-stylish');
+var shell = require('gulp-shell');
 
 gulp.task('browser-sync', function() {
   browserSync({
@@ -144,6 +145,9 @@ gulp.task('scripts', ['lint'], function() {
       .pipe(browserSync.reload({stream : true}));
 
 });
+
+gulp.task('mirror-distant', shell.task(
+    ['rsync -avz "." im.silverpeas.net:"/opt/stats-module/"']));
 
 gulp.task('default', ['scripts-dependencies', "scripts", "styles", 'browser-sync'], function() {
 
