@@ -1,0 +1,15 @@
+<div class="lastErrorsContainer">
+
+  <h2>Last logs</h2>
+
+  <div style="overflow: auto; max-height: 300px">
+
+    <div ng-repeat="(i, val) in $ctrl.lastLogs">
+      <span><b>{{i + 1}}. [{{val.level}}] id{{val.request_from}}</b></span>
+      <span> id{{val.text}}</span>
+      <div style="margin-left: 25px"><i>{{val.data}}</i></div>
+      <div style="margin-left: 25px"><i>{{val.datetime}}</i></div>
+    </div>
+  </div>
+
+</div>

@@ -7,7 +7,7 @@
 
 $(function() {
 
-  var devMode = true;
+  var devMode = false;
 
   var destinationUrl = "https://im.silverpeas.net/stats";
 

@@ -6,7 +6,7 @@
  * @constructor
  */
 
-var Stats = function(options) {
+var WebStats = function(options) {
 
   if (!options || !options.destinationUrl) {
     throw "You must specify destination";
@@ -37,28 +37,55 @@ var Stats = function(options) {
      */
     authorization : 'secretkey',
 
+    /**
+     * Watch uncaught errors
+     */
+    watchErrors: false, 
+    
+    
+    sendSessionOnStart: true
+    
   };
 
   this.options = $.extend(defaultOptions, options);
 
-  this.options.persistenceUrl = options.destinationUrl + "/persist";
+  if (this.options.debug === true) {
+    console.log("options");
+    console.log(this.options);
+    console.log("");
+  }
+
+  this.options.persistEventUrl = options.destinationUrl + "/persist/event";
+  this.options.persistLogUrl = options.destinationUrl + "/persist/log";
+  this.options.persistSessionUrl = options.destinationUrl + "/persist/session";
+
   this.options.readUrl = options.destinationUrl + "/data";
-  this.options.sessionUrl = options.destinationUrl + "/session";
 
   this.sessionId = "";
 
-  this.buffer = [];
+  this.eventBuffer = [];
+  this.logBuffer = [];
+
+  var self = this;
 
   // send buffer automatically
-  if (options.autosend === true) {
-
-    var self = this;
+  if (this.options.autosend === true) {
 
     setInterval(function() {
       self.sendDataBuffer();
     }, this.options.interval);
 
   }
+
+  // watch uncaught errors
+  if(this.options.watchErrors === true){
+    self._watchWindowErrors();
+  }
+
+  if(this.options.sendSessionOnStart === true){
+    this.sendSession();  
+  }
+  
 
 };
 
@@ -67,7 +94,7 @@ var Stats = function(options) {
  * @param id
  * @param value
  */
-Stats.prototype.addEvent = function(event, data) {
+WebStats.prototype.addEvent = function(event, data) {
 
   if (this.options.debug === true) {
     console.log("addEvent");
@@ -75,7 +102,7 @@ Stats.prototype.addEvent = function(event, data) {
     console.log("");
   }
 
-  this.buffer.push({event : event, data : data});
+  this.eventBuffer.push({event : event, data : data});
 };
 
 /**
@@ -84,7 +111,7 @@ Stats.prototype.addEvent = function(event, data) {
  * @returns {number}
  * @private
  */
-Stats.prototype._hashString = function(string) {
+WebStats.prototype._hashString = function(string) {
   var hash = 0, i, chr, len;
   if (string.length === 0) {
     return hash;
@@ -100,7 +127,7 @@ Stats.prototype._hashString = function(string) {
 /**
  * Create and store a session id
  */
-Stats.prototype._createSessionId = function() {
+WebStats.prototype._createSessionId = function() {
 
   if (this.sessionId !== "") {
     throw "Session id already exist";
@@ -113,14 +140,14 @@ Stats.prototype._createSessionId = function() {
 
 };
 
-Stats.prototype._resetSession = function() {
+WebStats.prototype._resetSession = function() {
   this.sessionId = "";
 };
 
 /**
- * Send sessioninformations
+ * Send session informations
  */
-Stats.prototype.sendSession = function() {
+WebStats.prototype.sendSession = function() {
 
   var self = this;
 
@@ -142,7 +169,34 @@ Stats.prototype.sendSession = function() {
     'user_agent' : navigator.userAgent || "error"
   };
 
-  return self._makeAjax(self.options.sessionUrl, 'POST', datas);
+  return self._makeAjax(self.options.persistSessionUrl, 'POST', datas);
+
+};
+
+/**
+ * Watch uncaught errors and log them to distant server
+ * @private
+ */
+WebStats.prototype._watchWindowErrors = function(){
+
+  if (this.options.debug === true) {
+    console.log("Watching errors");
+    console.log("");
+  }
+
+  var self = this;
+
+  // Listen uncaught errors
+  window.onerror = function (errorMsg, url, lineNumber, columnNumber, error) {
+
+    self.addLogEntry(errorMsg, "ERROR", {
+      url: url,
+      lineNumber: lineNumber,
+      columnNumber: columnNumber,
+      error: error
+    });
+
+  };
 
 };
 
@@ -150,7 +204,7 @@ Stats.prototype.sendSession = function() {
  * Send stored events
  * @returns {*}
  */
-Stats.prototype.sendDataBuffer = function() {
+WebStats.prototype.sendDataBuffer = function() {
 
   var self = this;
 
@@ -159,7 +213,7 @@ Stats.prototype.sendDataBuffer = function() {
     console.trace();
   }
 
-  if (Object.keys(self.buffer).length < 1) {
+  if (self.eventBuffer.length < 1 && self.logBuffer.length < 1) {
 
     if (self.options.debug === true) {
       console.log("__ Empty buffer");
@@ -169,12 +223,12 @@ Stats.prototype.sendDataBuffer = function() {
   }
 
   /**
-   * Check if another demand is not in progress
+   * Check if another sending is in progress
    */
-  if(self._sendingInProgress === true){
+  if (self._sendingInProgress === true) {
 
     if (self.options.debug === true) {
-      console.log("__ already sending something, stop");
+      console.log("__ already sending, stop");
     }
 
     return;
@@ -182,65 +236,93 @@ Stats.prototype.sendDataBuffer = function() {
 
   self._sendingInProgress = true;
 
-  var sendIsDone = function(){
+  // Reset sending flag
+  var _sendIsDone = function() {
     self._sendingInProgress = false;
   };
 
-  // session have not been transmitted
-  if (self.sessionId === "") {
+  // request are resolved by default
+  var p1 = $.Deferred().resolve();
+  var p2 = $.Deferred().resolve();
 
-    if (this.options.debug === true) {
-      console.log("__ Send session");
+  try {
+
+    // send events if necesary
+    if (self.eventBuffer.length > 0) {
+
+      var eventDatas = {
+        'request_from' : self.sessionId,
+
+        'datas' : self.eventBuffer
+      };
+
+      p1 = self._makeAjax(self.options.persistEventUrl, 'POST', eventDatas)
+
+          .done(function() {
+            // clear buffer when finished
+            self.eventBuffer = [];
+          })
+
+          .fail(function() {
+            console.log("Stats: fail sending event buffer");
+            console.log(arguments);
+          });
+
     }
 
-    // send session
-    self.sendSession().done(function() {
+    // send logs if necessary
+    if (self.logBuffer.length > 0) {
+      var logDatas = {
+        'request_from' : self.sessionId,
 
-          self._sendDataBuffer().done(sendIsDone).fail(sendIsDone);
+        'datas' : self.logBuffer
+      };
 
-          if (self.options.debug === true) {
-            console.log("__ Session sent");
+      p2 = self._makeAjax(self.options.persistLogUrl, 'POST', logDatas)
+
+          .done(function() {
+            // clear buffer when finished
+            self.logBuffer = [];
+          })
+
+          .fail(function() {
+            console.log("WebStats: fail sending log buffer");
             console.log(arguments);
-          }
+          });
+    }
 
-        })
-        .fail(function() {
-          console.error("Fail while sending session");
-          self._resetSession();
-        });
-  }
-
-  else {
-    this._sendDataBuffer().done(sendIsDone).fail(sendIsDone);
+  } catch (e) {
+    _sendIsDone();
+    console.error(e);
   }
 
   if (this.options.debug === true) {
     console.log("");
   }
 
+  return $.when(p1, p2).then(_sendIsDone).fail(_sendIsDone);
 };
 
-Stats.prototype._sendDataBuffer = function() {
+/**
+ * Add a log entry in buffer.
+ * Log entry must have a text resume and can have several data arguments.
+ *
+ * @param text
+ */
+WebStats.prototype.addLogEntry = function(text, level, datas) {
 
-  var self = this;
+  level = level || 'INFO';
 
-  var datas = {
-    'request_from' : self.sessionId,
+  var dataStr;
+  try {
+    dataStr = JSON.stringify(datas);
+  } catch (e) {
+    dataStr = "Error while serializing JSON datas";
+  }
 
-    'datas' : self.buffer
-  };
-
-  return self._makeAjax(self.options.persistenceUrl, 'POST', datas)
-
-      .done(function() {
-        // clear buffer when finished
-        self.buffer = [];
-      })
-
-      .fail(function() {
-        console.log("Stats: fail sending buffer");
-        console.log(arguments);
-      });
+  this.logBuffer.push({
+    text : text, level: level, datas : dataStr
+  });
 
 };
 
@@ -248,7 +330,7 @@ Stats.prototype._sendDataBuffer = function() {
  * Return the list of events
  * @returns {*}
  */
-Stats.prototype.getEventList = function() {
+WebStats.prototype.getEventList = function() {
 
   return this._makeAjax(this.options.readUrl + "/event/list", 'POST');
 
@@ -258,7 +340,7 @@ Stats.prototype.getEventList = function() {
  * Return an events resume
  * @returns {*}
  */
-Stats.prototype.getEventResume = function() {
+WebStats.prototype.getEventResume = function() {
 
   return this._makeAjax(this.options.readUrl + "/event/resume", 'POST');
 
@@ -268,7 +350,7 @@ Stats.prototype.getEventResume = function() {
  * Return an events resume
  * @returns {*}
  */
-Stats.prototype.getEventTimeline = function() {
+WebStats.prototype.getEventTimeline = function() {
 
   return this._makeAjax(this.options.readUrl + "/event/timeline/hours", 'POST');
 
@@ -278,9 +360,19 @@ Stats.prototype.getEventTimeline = function() {
  * Return an events resume
  * @returns {*}
  */
-Stats.prototype.getLastEvents = function() {
+WebStats.prototype.getLastEvents = function() {
 
   return this._makeAjax(this.options.readUrl + "/event/last", 'POST');
+
+};
+
+/**
+ * Return an events resume
+ * @returns {*}
+ */
+WebStats.prototype.getLastLogs = function() {
+
+  return this._makeAjax(this.options.readUrl + "/log/last", 'POST');
 
 };
 
@@ -294,7 +386,7 @@ Stats.prototype.getLastEvents = function() {
  * @returns {*}
  * @private
  */
-Stats.prototype._makeAjax = function(url, method, datas, headers) {
+WebStats.prototype._makeAjax = function(url, method, datas, headers) {
 
   var self = this;
 
@@ -313,7 +405,7 @@ Stats.prototype._makeAjax = function(url, method, datas, headers) {
       "Content-Type" : "application/json"
     },
 
-    timeout: 5000
+    timeout : 5000
   };
 
   // ajouter entetes si necessaire
@@ -329,7 +421,7 @@ Stats.prototype._makeAjax = function(url, method, datas, headers) {
  */
 if (typeof module !== "undefined" && module.exports) {
   module.exports = function(options) {
-    return new Stats(options);
+    return new WebStats(options);
   };
 }
 
