@@ -147,8 +147,9 @@ gulp.task('scripts', ['lint'], function() {
 
 gulp.task('default', ['scripts-dependencies', "scripts", "styles", 'browser-sync'], function() {
 
-  gulp.watch("public/src/styles/**/*.scss", ['styles']);
-  gulp.watch("public/src/scripts/**/*", ['scripts']);
+  gulp.watch("public/src/styles/**/*.scss", ['styles', 'bs-reload']);
+  gulp.watch("public/src/scripts/**/*", ['scripts', 'bs-reload']);
+  gulp.watch("examples/**/*", ['bs-reload']);
   gulp.watch("public/**/*.html", ['bs-reload']);
 
 });
