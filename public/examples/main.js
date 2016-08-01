@@ -7,7 +7,7 @@
 
 $(function() {
 
-  var devMode = false;
+  var devMode = true;
 
   var destinationUrl = "https://im.silverpeas.net/stats";
 
@@ -16,15 +16,18 @@ $(function() {
   }
 
   // Create an stat instance
-  var stats = new Stats({
+  var stats = new WebStats({
+
     enabled : true,
 
     destinationUrl : destinationUrl,
 
     autosend : true,
 
-    authorization : "DK5I4-0yl9N2KN64Pg5YcEAsdnCXeamr"
-    
+    authorization : "DK5I4-0yl9N2KN64Pg5YcEAsdnCXeamr",
+
+    watchErrors: true
+
   });
 
   // add a single event
@@ -42,5 +45,9 @@ $(function() {
     stats.addEvent(event);
 
   });
+
+  setTimeout(function(){
+    throw "Uncaught error";
+  }, 1000);
 
 });
