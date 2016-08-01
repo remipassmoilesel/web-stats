@@ -132,7 +132,7 @@ statPersistence.get('/', function(req, res) {
 /**
  * Where clients send data
  */
-statPersistence.post('/persist', function(req, res) {
+statPersistence.post('/event', function(req, res) {
 
   log("");
   log(("Receiving data request: " + req.ip + "").green);
@@ -165,7 +165,25 @@ statPersistence.post('/session', function(req, res) {
 
 });
 
-app.use('/', statPersistence); // mount the sub app
+/**
+ * Where clients send data
+ */
+statPersistence.post('/log', function(req, res) {
+
+  log("");
+  log(("Receiving log request: " + req.ip + "").green);
+
+  checkAuthorization(req, res);
+
+  // save datas
+  dbmanager.saveLog(req);
+
+  res.status(200).json({"state" : 'OK'});
+  res.send();
+
+});
+
+app.use('/persist', statPersistence); // mount the sub app
 
 /**
  *
@@ -173,7 +191,7 @@ app.use('/', statPersistence); // mount the sub app
  *
  *
  *
- * Where clients can see datas and charts
+ * Where clients can get datas
  *
  *
  *
@@ -183,10 +201,6 @@ app.use('/', statPersistence); // mount the sub app
  *
  */
 var dataAccess = express(); // the sub app
-
-dataAccess.post('/', function(req, res) {
-
-});
 
 /**
  * Get event list
@@ -325,6 +339,62 @@ dataAccess.post('/event/timeline/hours', function(req, res) {
           });
 
           finalRes.reverse();
+
+        }
+
+        res.status(200).json(finalRes);
+        res.send();
+
+      })
+      .catch(function(error) {
+        log("500 - Internal error".red);
+        log(error);
+
+        res.status(500).json({"error" : '500'});
+        res.send();
+      });
+
+});
+
+/**
+ * Get events occurence per hours
+ */
+dataAccess.post('/log/last', function(req, res) {
+
+  checkAuthorization(req, res);
+
+  dbmanager.query(
+      "SELECT * FROM data_logs ORDER BY datetime DESC LIMIT 100")
+
+      .then(function(result) {
+
+        var finalRes = [];
+        if (result && result.rows) {
+
+          _.each(result.rows, function(value, key, list) {
+
+            var logDatas;
+            try{
+              logDatas = JSON.parse(value.data);
+            }
+            catch(e){
+              logDatas = "Error while parsing JSON datas";
+            }
+
+            finalRes.push({
+
+              "level" : value.level,
+
+              "request_from" : value.request_from,
+
+              "text" : value.text,
+
+              "data" : logDatas,
+
+              "datetime" : value.datetime
+
+            });
+          });
 
         }
 

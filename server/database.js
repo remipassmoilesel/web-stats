@@ -140,17 +140,17 @@ DBManager.prototype.saveRequest = function(req) {
       return;
     }
 
+    var sqlReq = "INSERT INTO data_requests (request_from, event_name, event_data)";
+    sqlReq += " VALUES ($1, $2, $3)";
+
     _.each(datas, function(value, key, list) {
 
       try {
 
-        var req = "INSERT INTO data_requests (request_from, event_name, event_data)"
-        req += " VALUES ($1, $2, $3)";
-
         var event = value.event;
         var value = Object.keys(value).length > 0 ? JSON.stringify(value.data) : "";
 
-        client.query(req, [request_from, event, value], function(err, result) {
+        client.query(sqlReq, [request_from, event, value], function(err, result) {
           //call `done()` to release the client back to the pool
           done();
 
@@ -193,14 +193,14 @@ DBManager.prototype.saveSession = function(req){
 
     try {
 
-      var req = "INSERT INTO data_sessions (request_from, navigator_language, user_agent)"
-      req += " VALUES ($1, $2, $3)";
+      var sqlReq = "INSERT INTO data_sessions (request_from, navigator_language, user_agent)";
+      sqlReq += " VALUES ($1, $2, $3)";
 
       var request_from = datas.request_from;
       var navigator_language = datas.navigator_language;
       var user_agent = datas.user_agent;
 
-      client.query(req, [request_from, navigator_language, user_agent], function(err, result) {
+      client.query(sqlReq, [request_from, navigator_language, user_agent], function(err, result) {
         //call `done()` to release the client back to the pool
         done();
 
@@ -214,6 +214,60 @@ DBManager.prototype.saveSession = function(req){
     } catch (e) {
       console.error(e);
     }
+
+  });
+
+
+};
+
+/**
+ *
+ * Save log request in database
+ *
+ *
+ * @param req
+ */
+DBManager.prototype.saveLog = function(req){
+
+  var self = this;
+
+  var request_from = req.body.request_from;
+  var datas = req.body.datas;
+
+  self.pool.connect(function(err, client, done) {
+
+    if (err) {
+      console.error('error getting client', err);
+      return;
+    }
+
+    var sqlReq = "INSERT INTO data_logs(request_from, text, data, level)";
+    sqlReq += " VALUES ($1, $2, $3, $4)";
+
+    _.each(datas, function(value, key, list) {
+
+      try {
+
+        var text = value.text;
+        var level = value.level || "INFO";
+        var datas = value.datas && value.datas.length > 0 ? JSON.stringify(value.datas) : "";
+
+        client.query(sqlReq, [request_from, text, datas, level], function(err, result) {
+          //call `done()` to release the client back to the pool
+          done();
+
+          if (err) {
+            console.error('Error running query', err);
+            return;
+          }
+
+        });
+
+      } catch (e) {
+        console.error(e);
+      }
+
+    });
 
   });
 
