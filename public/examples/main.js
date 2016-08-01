@@ -47,7 +47,7 @@ $(function() {
   });
 
   setTimeout(function(){
-    throw "Uncaught error";
+    throw "Test error !";
   }, 1000);
 
 });
