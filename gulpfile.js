@@ -146,8 +146,9 @@ gulp.task('scripts', ['lint'], function() {
 
 });
 
-gulp.task('mirror-distant', shell.task(
-    ['rsync -avz "." im.silverpeas.net:"/opt/stats-module/"']));
+var server = 'im.silverpeas.net';
+gulp.task('deploy-distant', shell.task(
+    ['rsync -avz "." ' + server + ':"/opt/stats-module/"']));
 
 gulp.task('default', ['scripts-dependencies', "scripts", "styles", 'browser-sync'], function() {
 
