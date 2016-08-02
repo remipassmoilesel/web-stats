@@ -373,12 +373,13 @@ dataAccess.post('/log/last', function(req, res) {
 
           _.each(result.rows, function(value, key, list) {
 
-            var logDatas;
-            try{
-              logDatas = JSON.parse(value.data);
-            }
-            catch(e){
-              logDatas = "Error while parsing JSON datas";
+            var logDatas = "";
+            if(value.data.length > 0) {
+              try {
+                logDatas = JSON.parse(value.data);
+              } catch (e) {
+                logDatas = "Error while parsing JSON datas";
+              }
             }
 
             finalRes.push({
@@ -391,7 +392,9 @@ dataAccess.post('/log/last', function(req, res) {
 
               "data" : logDatas,
 
-              "datetime" : value.datetime
+              "datetime" : value.datetime,
+              
+              "id" : value.id,
 
             });
           });

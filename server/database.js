@@ -53,7 +53,7 @@ var DBManager = function() {
  */
 DBManager.prototype.createTableScheme = function() {
   this.query(this.templates['create-tables.sql']);
-}
+};
 
 /**
  * /!\ /!\ /!\ /!\
