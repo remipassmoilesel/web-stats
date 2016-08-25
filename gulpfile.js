@@ -14,6 +14,9 @@ var jshint = require('gulp-jshint');
 var stylish = require('jshint-stylish');
 var shell = require('gulp-shell');
 
+
+var server = 'im.silverpeas.net';
+
 gulp.task('browser-sync', function() {
   browserSync({
     server : {
@@ -146,7 +149,6 @@ gulp.task('scripts', ['lint'], function() {
 
 });
 
-var server = 'im.silverpeas.net';
 gulp.task('deploy-distant', shell.task(
     ['rsync -avz "." ' + server + ':"/opt/stats-module/"']));
 
