@@ -16,7 +16,7 @@ Server side:
     $ cd web-stats
     $ npm install
     $ cd public
-    $ bower instaTB4qIxSR6YsL0YUl5KP35yvEUG27wYBVll
+    $ bower install
     
     $ sudo service psotgresql start
     $ sudo -u postgres psql -c 'create database Stats' 
