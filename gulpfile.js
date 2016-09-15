@@ -15,7 +15,7 @@ var stylish = require('jshint-stylish');
 var shell = require('gulp-shell');
 
 
-var server = 'im.silverpeas.net';
+var server = 'vps303506.ovh.net';
 
 gulp.task('browser-sync', function() {
   browserSync({
@@ -32,7 +32,7 @@ gulp.task('bs-reload', function() {
 gulp.task('start-server',
     shell.task(['cd server && export PATH=$PATH:/opt/nodejs4/bin/ ' + '&& node server.js']));
 
-gulp.task('send-distant', shell.task(['rsync -av . im.silverpeas.net:/opt/stats-module/']));
+gulp.task('send-distant', shell.task(['rsync -av . vps303506.ovh.net:/opt/stats-module/']));
 
 gulp.task('images', function() {
   gulp.src('public/src/images/**/*')

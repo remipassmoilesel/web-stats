@@ -9,7 +9,7 @@ $(function() {
 
   var devMode = false;
 
-  var destinationUrl = "https://im.silverpeas.net/stats";
+  var destinationUrl = "https://domain.net/stats";
 
   if (devMode === true) {
     destinationUrl = "http://127.0.0.1:3005";

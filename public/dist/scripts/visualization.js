@@ -134,7 +134,7 @@
 	    /**
 	     * Root url. Without trailing slash. You can specify a port here.
 	     */
-	    DESTINATION_URL : "https://im.silverpeas.net/stats"
+	    DESTINATION_URL : "https://domain.net/stats"
 	  }
 
 	  if (DEV_MODE === true) {
