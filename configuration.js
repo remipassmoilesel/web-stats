@@ -5,7 +5,7 @@
  */
 module.exports = (function() {
 
-  var DEV_MODE = false;
+  var DEV_MODE = true;
 
   var configuration = {
 
@@ -40,7 +40,7 @@ module.exports = (function() {
     /**
      * Root url. Without trailing slash. You can specify a port here.
      */
-    DESTINATION_URL : "https://domain.net/stats"
+    DESTINATION_URL : "http://127.0.0.1:3000"
   };
 
   if (DEV_MODE === true) {
